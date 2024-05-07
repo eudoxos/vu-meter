@@ -21,10 +21,11 @@ with Live(progress_table, refresh_per_second=10):
     for line in sys.stdin:
         line=line[:-1]
         if job_progress is None:
-            job_progress = Progress("{task.description}",BarColumn(),TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-            )
-            for ch in json.loads(line): job_progress.add_task(ch,total=1.0)
-            progress_table.add_row(Panel.fit(job_progress, title="[b]VU Meter", border_style="red", padding=(1, 2)))
+            job_progress = Progress("{task.description}",BarColumn(),TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),)
+            ddpp=[dp.split(':') for dp in json.loads(line)]
+            oneDev=(len(set([dp[0] for dp in ddpp]))==1)
+            for dp in ddpp: job_progress.add_task(dp[1] if oneDev else ':'.join(dp),total=1.0)
+            progress_table.add_row(Panel.fit(job_progress, title=(f'[b]{ddpp[0][0]}' if oneDev else 'VU meter'), border_style="red", padding=(1, 2)))
             continue
         vv=[float(v) for v in line.split()]
         for job,val in zip(job_progress.tasks,vv):

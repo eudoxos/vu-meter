@@ -11,4 +11,4 @@ target/debug/vu-meter --json \
 	"StudioLive AR8c Pro:monitor_AUX1" \
 	"StudioLive AR8c Pro:monitor_AUX2" \
 	"StudioLive AR8c Pro:monitor_AUX3" \
-  | python3 aa.py
+  | python3 liveplot.py
