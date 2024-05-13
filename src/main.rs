@@ -1,8 +1,5 @@
 use core::mem;
-use std::process::exit;
 use std::sync::{Arc, Mutex};
-// use std::thread;
-// use std::time::Duration;
 use itertools::Itertools;
 
 use clap::Parser;
@@ -19,36 +16,20 @@ struct Args {
     port: Vec<String>,
 }
 
-fn main() {
+fn main() -> Result<(), Error> {
     unsafe { signal(Signal::SIGHUP, SigHandler::SigIgn) }.unwrap();
 
     let args: Args = Args::parse();
     let client = create_client().expect("Failed to create Jack client");
-    let ports = match connect_ports(&client, &args.port) {
-        Ok(ports) => ports,
-        Err(err) => {
-            eprintln!("Failed to connect ports: {err:#?}");
-            exit(1);
-        }
-    };
+    let ports = connect_ports(&client, &args.port)?;
 
     let process_handler_context = ProcessHandlerContext::new(ports);
     let vu = process_handler_context.vu();
-
     // let frame_dur_ms = 1000 * client.buffer_size() / client.sample_rate() as u32;
-
-    let _ac = match client.activate_async((), process_handler_context) {
-        Ok(ac) => ac,
-        Err(e) => {
-            eprintln!("Failed to activate {:?}", e);
-            return;
-        }
-    };
-
+    let _ac = client.activate_async((), process_handler_context)?;
     if args.json {
         println!("{}", serde_json::to_string(&args.port).unwrap());
     }
-
     let n_chan = vu.lock().unwrap().len();
 
     loop {
